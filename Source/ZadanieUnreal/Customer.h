@@ -3,8 +3,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "ShoppingList.h"
-#include "NPCHoverInterface.h"
 #include "Customer.generated.h"
 class UCameraComponent;
 
@@ -20,16 +18,18 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	TArray<TSharedPtr<FJsonValue>> PlayerActions;
+	FString PlayerActionsFilePath;
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shopping")
-		UShoppingList* ShoppingList;
+	void SavePlayerAction(const FString& PlayerAction);
+	class ANPC* InteractedNPC;
+	UPROPERTY()
+		bool bLockActions = false;
 private:
 
 	//Functions 
@@ -38,9 +38,13 @@ private:
 	void Turn(float scale);
 	void LookUp(float scale);
 	bool RayTrace(FHitResult& OutHit);
-	void CustomerClick();
+	void ShowHideBasket();
 	void Interact();
 	void MoveCustomer(FVector Position, float DeltaTime);
+	void ShowHideInventory();
+	void ShowHideShopingList();
+
+	void LoadPlayerActions();
 
 	// Variables
 	UPROPERTY(EditDefaultsOnly, Category = "Ray Trace")
@@ -53,16 +57,17 @@ private:
 		float LookUpRate = 45.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 		float InterpSpeed = 1000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+		float TargetDistFromNPC = 150.0f;
 	UPROPERTY()
 		bool bForceMove = false;
 
 	FVector targetPosition;
 	float DistanceToSeller;
-
+	class ACustomerController* CustomerController;
 	//Components
-	UPROPERTY(VisibleAnywhere,Category = "Components")
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 		UCameraComponent* CameraComponent;
-
 
 
 

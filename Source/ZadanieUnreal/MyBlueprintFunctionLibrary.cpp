@@ -4,7 +4,7 @@
 #include "MyBlueprintFunctionLibrary.h"
 #include "Components/TextBlock.h"
 #include <Blueprint/UserWidget.h>
-void UMyBlueprintFunctionLibrary::UpdateTextBoxValue(UUserWidget* UserWidget, FName WidgetBindingName, const FText NewText)
+void UMyBlueprintFunctionLibrary::UpdateTextBoxValue(UUserWidget* UserWidget, FName WidgetBindingName, const FText NewText, const FSlateColor NewColor)
 {
     if (UserWidget)
     {
@@ -12,6 +12,7 @@ void UMyBlueprintFunctionLibrary::UpdateTextBoxValue(UUserWidget* UserWidget, FN
         if (TextBox)
         {
             TextBox->SetText(NewText);
+            TextBox->SetColorAndOpacity(NewColor);
         }
     }
 }

@@ -15,6 +15,6 @@ class ZADANIEUNREAL_API UMyBlueprintFunctionLibrary : public UBlueprintFunctionL
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
-		static void UpdateTextBoxValue(UUserWidget* UserWidget, FName WidgetBindingName, const FText NewText);
+		static void UpdateTextBoxValue(UUserWidget* UserWidget, FName WidgetBindingName, const FText NewText, const FSlateColor NewColor);
 };
 
