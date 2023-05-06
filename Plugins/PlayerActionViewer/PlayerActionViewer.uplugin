@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "PlayerActionViewer",
+	"Description": "Plugin to view saved player actions",
+	"Category": "Other",
+	"CreatedBy": "Gabriel Spytkowski",
+	"CreatedByURL": "https://www.spytkowskidev.com/",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "PlayerActionViewer",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}

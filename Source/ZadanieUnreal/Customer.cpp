@@ -32,7 +32,7 @@ void ACustomer::BeginPlay()
 	CustomerController = Cast<ACustomerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	// Initialize the file path
 	FString FileName = "PlayerActions.json";
-	FString SaveDirectory = FPaths::ProjectSavedDir();
+	FString SaveDirectory = FPaths::ProjectSavedDir() / TEXT("SavedActions/");
 	PlayerActionsFilePath = SaveDirectory + FileName;
 
 	// Load existing player actions
@@ -135,7 +135,6 @@ void ACustomer::Interact()
 			}
 			else 
 				InteractedNPC->InteractWithCustomer();
-			SavePlayerAction("Otwarcie sklepu");
 		}
 	
 }
