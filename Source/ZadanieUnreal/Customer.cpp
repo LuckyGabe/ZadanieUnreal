@@ -22,7 +22,7 @@ ACustomer::ACustomer()
 	CameraComponent->SetupAttachment(RootComponent); //attach camera to the root component
 	CameraComponent->SetRelativeLocation(FVector(-39.56f, 1.75f, 64.f)); // Position the camera
 	CameraComponent->bUsePawnControlRotation = true;
-	
+
 }
 
 // Called when the game starts or when spawned
@@ -62,7 +62,7 @@ void ACustomer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &ACustomer::Interact);
 	PlayerInputComponent->BindAction("Basket", EInputEvent::IE_Pressed, this, &ACustomer::ShowHideBasket);
 	PlayerInputComponent->BindAction("Inventory", EInputEvent::IE_Pressed, this, &ACustomer::ShowHideInventory).bConsumeInput = false;
-	PlayerInputComponent->BindAction("ShoppingList", EInputEvent::IE_Pressed, this, &ACustomer::ShowHideShopingList);
+	PlayerInputComponent->BindAction("ShoppingList", EInputEvent::IE_Pressed, this, &ACustomer::ShowHideShoppingList);
 }
 
 void ACustomer::MoveForward(float scale)
@@ -74,8 +74,8 @@ void ACustomer::MoveForward(float scale)
 void ACustomer::MoveRight(float scale)
 {
 	if (bLockActions) { return; }
-		AddMovementInput(GetActorRightVector(), scale); //Move actor right if the scale is 1 and left if it is -1
-	
+	AddMovementInput(GetActorRightVector(), scale); //Move actor right if the scale is 1 and left if it is -1
+
 }
 void ACustomer::Turn(float scale)
 {
@@ -103,59 +103,60 @@ bool ACustomer::RayTrace(FHitResult& OutHit)
 
 	return GetWorld()->LineTraceSingleByChannel(OutHit, Location, EndPoint, ECollisionChannel::ECC_GameTraceChannel1, Params);
 }
-
 void ACustomer::ShowHideBasket()
 {
-	if (bLockActions) { return; }
-	CustomerController->ShowHideBasket();
-	
+	if (!bLockActions)
+	{
+		CustomerController->ShowHideBasket();
+	}
 }
 
 void ACustomer::Interact()
 {
 	if (bLockActions) { return; }
-	
-		//store ray trace results
-		FHitResult HitResult;
-		FVector PlayerLocation = GetActorLocation();
-		//To avoid crashing the engine, or executing the code on wrong object return early
-		if (!RayTrace(HitResult)) { return; }
-		if (!HitResult.GetActor()) return;
 
-		//As the "RayTrace" function is returning true only if object is set on "ECollisionChannel" and only the sellers will be there,
-		//we do not need to compare tag
-		InteractedNPC = Cast<ANPC>(HitResult.GetActor());
-		if (InteractedNPC)
-		{
-			if (FVector::Dist(PlayerLocation, InteractedNPC->GetActorLocation()) > DistanceToBuy)
-			{
-				targetPosition = InteractedNPC->GetActorLocation() - TargetDistFromNPC * InteractedNPC->GetActorForwardVector();
-				bForceMove = true;
-				SavePlayerAction("Podejscie do sklepu");
-			}
-			else 
-				InteractedNPC->InteractWithCustomer();
-		}
-	
+	// store ray trace results
+	FHitResult HitResult;
+
+	if (!RayTrace(HitResult)) { return; }
+
+	ANPC* HitActor = Cast<ANPC>(HitResult.GetActor());
+	if (!HitActor) return;
+
+	InteractedNPC = HitActor;
+	float Distance = FVector::Dist(GetActorLocation(), InteractedNPC->GetActorLocation());
+	if (Distance > DistanceToBuy)
+	{
+		targetPosition = InteractedNPC->GetActorLocation() - TargetDistFromNPC * InteractedNPC->GetActorForwardVector();
+		bForceMove = true;
+		SavePlayerAction("Podejscie do sklepu");
+	}
+	else
+	{
+		InteractedNPC->InteractWithCustomer();
+	}
 }
 
+//Automatically move the customer in front of the NPC
 void ACustomer::MoveCustomer(FVector Position, float DeltaTime)
 {
-	DistanceToSeller = FVector::Dist(GetActorLocation(), targetPosition);
-	if (DistanceToSeller <= 100.f) { bForceMove = false; }
+	if (FVector::Dist(GetActorLocation(), targetPosition) <= 100.f)
+	{
+		bForceMove = false;
+		return;
+	}
+
 	FVector NewPosition = FMath::VInterpConstantTo(GetActorLocation(), Position, DeltaTime, InterpSpeed);
 	SetActorLocation(NewPosition);
-
 }
 
 void ACustomer::ShowHideInventory()
 {
 	CustomerController->ShowHideItemInventory();
-	if (bLockActions) { bLockActions = false;}
-	else { bLockActions = true; }
+	bLockActions = !bLockActions;
 }
 
-void ACustomer::ShowHideShopingList()
+void ACustomer::ShowHideShoppingList()
 {
 	if (CustomerController->IsInputKeyDown(EKeys::LeftControl))
 	{
@@ -168,7 +169,7 @@ void ACustomer::SavePlayerAction(const FString& PlayerAction)
 	// Get the current date and time
 	FDateTime CurrentDateTime = FDateTime::Now();
 
-	// Create a new JSON object for the current player action
+	// Create a new JSON object for the current customer action
 	TSharedPtr<FJsonObject> NewActionObject = MakeShareable(new FJsonObject());
 	NewActionObject->SetStringField("player_action", PlayerAction);
 	NewActionObject->SetStringField("timestamp", CurrentDateTime.ToString());

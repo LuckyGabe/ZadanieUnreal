@@ -33,6 +33,8 @@ void ANPC::BeginPlay()
 	CustomerController = Cast<ACustomerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)); //get player controller
 	StoreMaxNumberOfItems();
 	GetWorldTimerManager().SetTimer(ResetItemsQuantityTimerHandle, this, &ANPC::ResetItemsQuantity, RestoreMaxNumbOfItemsTime, true);
+
+	//Set the indicator of items availability
 	UpdateItemsAvailableIndicator();
 	ItemsAvailableIndicator->SetVisibility(true);
 	ItemsAvailableIndicator->SetWorldSize(100.0f); // Set the world size of the text

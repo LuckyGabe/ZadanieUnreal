@@ -6,9 +6,6 @@
 #include "GameFramework/PlayerController.h"
 #include "CustomerController.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class ZADANIEUNREAL_API ACustomerController : public APlayerController
 {
@@ -30,7 +27,6 @@ public:
 		void ShowStoreUI(TArray<FShoppingListItem> StoreItems, TSubclassOf<class UUserWidget> WidgetClass);
 	UFUNCTION(BlueprintCallable)
 		void HideStoreUI();
-
 	UFUNCTION()
 		void ShowHideBasket();
 	UFUNCTION()
@@ -79,15 +75,11 @@ private:
 	UFUNCTION()
 		AShoppingList* FindShoppingListClassInLevel();
 	UFUNCTION()
-	void AddItemToBasket(FShoppingListItem Item);
-
+		void AddItemToBasket(FShoppingListItem Item);
 	UFUNCTION()
 		void InitializeWidgets();
-
 	class AShoppingList* ShoppingList;
 	UPROPERTY(EditAnywhere, Category = "Shopping")
 		TArray<FShoppingListItem> ItemsInBasket;
-
-
 
 };

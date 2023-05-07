@@ -14,7 +14,6 @@ ACustomerController::ACustomerController()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 
@@ -22,15 +21,10 @@ ACustomerController::ACustomerController()
 void ACustomerController::BeginPlay()
 {
 	Super::BeginPlay();
-
 	Customer = Cast<ACustomer>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-
 	InitializeWidgets();
-
-
 	// Hide the mouse cursor
 	bShowMouseCursor = false;
-
 }
 
 void ACustomerController::PlayerTick(float DeltaTime)
@@ -39,7 +33,7 @@ void ACustomerController::PlayerTick(float DeltaTime)
 	UpdateHoveredNPC();
 }
 
-
+// Update customer's cursor
 void ACustomerController::UpdateHoveredNPC()
 {
 	FVector CameraLocation;
@@ -53,34 +47,44 @@ void ACustomerController::UpdateHoveredNPC()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Customer);
 
+	FText CursorText;
+	FSlateColor CursorColor;
+
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_GameTraceChannel1, Params))
 	{
 		ANPC* HitActor = Cast<ANPC>(HitResult.GetActor());
+
+		//assign cursor text and color based on the distance from NPC
 		if (HitActor)
 		{
-			// Hovering over an NPC
 			if (HitActor->DistanceToCustomer() > 200.f)
 			{
-
-				UMyBlueprintFunctionLibrary::UpdateTextBoxValue(CursorWidget, "MouseCursor", FText::FromString(TEXT("^")), FSlateColor(FLinearColor::Yellow));
+				CursorText = FText::FromString(TEXT("^"));
+				CursorColor = FSlateColor(FLinearColor::Yellow);
 			}
 			else
 			{
-				UMyBlueprintFunctionLibrary::UpdateTextBoxValue(CursorWidget, "MouseCursor", FText::FromString(TEXT("$")), FSlateColor(FLinearColor::Green));
+				CursorText = FText::FromString(TEXT("$"));
+				CursorColor = FSlateColor(FLinearColor::Green);
 			}
-
 		}
 		else
 		{
-			// Not hovering over an NPC
-			UMyBlueprintFunctionLibrary::UpdateTextBoxValue(CursorWidget, "MouseCursor", FText::FromString(TEXT(".")), FSlateColor(FLinearColor::Red));
+			CursorText = FText::FromString(TEXT("."));
+			CursorColor = FSlateColor(FLinearColor::Red);
 		}
 	}
 	else
-		// Not hovering over an NPC
-		UMyBlueprintFunctionLibrary::UpdateTextBoxValue(CursorWidget, "MouseCursor", FText::FromString(TEXT(".")), FSlateColor(FLinearColor::Red));
+	{
+		CursorText = FText::FromString(TEXT("."));
+		CursorColor = FSlateColor(FLinearColor::Red);
+	}
+
+	UMyBlueprintFunctionLibrary::UpdateTextBoxValue(CursorWidget, "MouseCursor", CursorText, CursorColor);
 }
 
+
+// Show the store UI and populate it with the given store items
 void ACustomerController::ShowStoreUI(TArray<FShoppingListItem> StoreItems, TSubclassOf<class UUserWidget> WidgetClass)
 {
 	StoreWidget = CreateWidget<UUserWidget>(this, WidgetClass);
@@ -96,6 +100,8 @@ void ACustomerController::ShowStoreUI(TArray<FShoppingListItem> StoreItems, TSub
 		PopulateStoreWidget(StoreItems);
 	}
 }
+
+// Hide the store UI
 void ACustomerController::HideStoreUI()
 {
 	if (StoreWidget)
@@ -107,9 +113,9 @@ void ACustomerController::HideStoreUI()
 	}
 }
 
+// Toggle the visibility of the basket widget
 void ACustomerController::ShowHideBasket()
 {
-
 	if (!BasketWidget->IsInViewport())
 	{
 		BasketWidget->AddToViewport(5);
@@ -122,6 +128,7 @@ void ACustomerController::ShowHideBasket()
 	}
 }
 
+// Toggle the visibility of the shopping list widget
 void ACustomerController::ShowHideShoppingList()
 {
 	if (!ShoppingListWidget->IsInViewport())
@@ -132,53 +139,62 @@ void ACustomerController::ShowHideShoppingList()
 	else
 	{
 		ShoppingListWidget->RemoveFromParent();
-		Customer->SavePlayerAction("Ukryj koszyk podreczny");
+		Customer->SavePlayerAction("Ukryj liste zakupow");
 	}
 }
 
+// Buy an item and add it to the basket
 void ACustomerController::BuyItem(FShoppingListItem Item)
 {
-	if (Item.Quantity == 0 || !Item.bCanBeBought) {return; }
+	if (Item.Quantity == 0 || !Item.bCanBeBought) { return; }
+
 	bool bIsItemOnList = false;
 	bool bIsListCompleted = false;
+
 	if (Customer)
 	{
 		Customer->InteractedNPC->RemoveItemFromTheStore(Item.ItemName);
 		PopulateStoreWidget(Customer->InteractedNPC->ItemsForSale);
 	}
+
 	if (ShoppingList)
 	{
 		ShoppingList->CheckAndDecreaseQuantity(Item.ItemName, bIsItemOnList, bIsListCompleted);
 	}
+
 	Customer->SavePlayerAction("Kupiono przedmiot: " + Item.ItemName);
 	AddItemToBasket(Item);
 	PopulateBasketWidget(ItemsInBasket);
-	if (bIsItemOnList) { PopulateShoppingList(ShoppingList->Items, bIsListCompleted); }
 
+	if (bIsItemOnList) { PopulateShoppingList(ShoppingList->Items, bIsListCompleted); }
 }
+
+// Add an item to the basket, or increment the quantity if it's already there
 void ACustomerController::AddItemToBasket(FShoppingListItem Item)
 {
-	for (int i = 0; i < ItemsInBasket.Num(); i++)
+	for (FShoppingListItem& BasketItem : ItemsInBasket)
 	{
-		//if the item is in shopping list and the quantity needed is more than 0
-		if (ItemsInBasket[i].ItemName.Equals(Item.ItemName))
+		if (BasketItem.ItemName.Equals(Item.ItemName))
 		{
-			ItemsInBasket[i].Quantity++;
+			BasketItem.Quantity++;
 			return;
 		}
 	}
+
 	Item.Quantity = 1;
 	ItemsInBasket.Add(Item);
 }
 
+
+// Initialize and set up the widgets
 void ACustomerController::InitializeWidgets()
 {
 	if (CursorWidgetClass)
 	{
 		CursorWidget = CreateWidget<UUserWidget>(this, CursorWidgetClass);
 		CursorWidget->AddToViewport();
-
 	}
+
 	if (ShoppingListWidgetClass)
 	{
 		ShoppingListWidget = CreateWidget<UUserWidget>(this, ShoppingListWidgetClass);
@@ -190,29 +206,30 @@ void ACustomerController::InitializeWidgets()
 		{
 			PopulateShoppingList(ShoppingList->Items, false);
 		}
-
 	}
+
 	if (BasketWidgetClass)
 	{
 		BasketWidget = CreateWidget<UUserWidget>(this, BasketWidgetClass);
 		BasketWidget->AddToViewport(5);
 	}
 
-	if (ItemInventoryWidgetClass) 
+	if (ItemInventoryWidgetClass)
 	{
 		ItemIventoryWidget = CreateWidget<UUserWidget>(this, ItemInventoryWidgetClass);
 	}
+
 	if (HUDWidgetClass)
 	{
 		HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);
 		HUDWidget->AddToViewport(10);
 	}
-
 }
 
+// Toggle the visibility of the item inventory widget
 void ACustomerController::ShowHideItemInventory()
 {
-	if(!ItemIventoryWidget->IsInViewport())
+	if (!ItemIventoryWidget->IsInViewport())
 	{
 		ItemIventoryWidget->AddToViewport(2);
 		bShowMouseCursor = true;
@@ -237,11 +254,11 @@ void ACustomerController::RemoveItemFromBasket(FString ItemName)
 		//if the item is in shopping list and the quantity needed is more than 0
 		if (ItemsInBasket[i].ItemName.Equals(ItemName))
 		{
-			
 			bool bIsItemOnList = false;
 			bool bIsListCompleted = false;
 			ItemsInBasket[i].Quantity--;
 			if (ItemsInBasket[i].Quantity == 0) { ItemsInBasket.RemoveAt(i);}
+
 			PopulateBasketWidget(ItemsInBasket);
 			PopulateInventoryWidget(ItemsInBasket);
 			ShoppingList->CheckAndIncreaseQuantity(ItemName, bIsItemOnList, bIsListCompleted);

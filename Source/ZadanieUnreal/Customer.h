@@ -20,6 +20,7 @@ protected:
 	virtual void BeginPlay() override;
 	TArray<TSharedPtr<FJsonValue>> PlayerActions;
 	FString PlayerActionsFilePath;
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -42,7 +43,7 @@ private:
 	void Interact();
 	void MoveCustomer(FVector Position, float DeltaTime);
 	void ShowHideInventory();
-	void ShowHideShopingList();
+	void ShowHideShoppingList();
 
 	void LoadPlayerActions();
 
@@ -61,9 +62,7 @@ private:
 		float TargetDistFromNPC = 150.0f;
 	UPROPERTY()
 		bool bForceMove = false;
-
 	FVector targetPosition;
-	float DistanceToSeller;
 	class ACustomerController* CustomerController;
 	//Components
 	UPROPERTY(VisibleAnywhere, Category = "Components")
