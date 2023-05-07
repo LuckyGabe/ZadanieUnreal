@@ -225,7 +225,7 @@ void ACustomerController::ShowHideItemInventory()
 		ItemIventoryWidget->RemoveFromParent();
 		BasketWidget->AddToViewport(5);
 		bShowMouseCursor = false;
-		Customer->SavePlayerAction("Zamknięto okno koszykowe");
+		Customer->SavePlayerAction("Zamknieto okno koszykowe");
 	}
 }
 
